@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const mongoose = require('mongoose');
 const client = new Client({intents: 515});
+const Logger = require('./utils/Logger');
 
 client.commands = new Collection();
 
@@ -10,16 +11,19 @@ client.commands = new Collection();
   require(`./utils/handlers/${handler}`)(client)
 });
 
-process.on('exit', code => {
-  console.log(`Le processus s'est arrêté avec le code: ${code}!`)
-});
+process.on('exit', code => { Logger.client(`Le processus s'est arrêté avec le code: ${code}!`) });
+
 process.on('uncaughtException', (err, origin) => {
-  console.log(`UNCAUGHT_EXCEPTION: ${err}`, `Origine: ${origin}`)
+  Logger.error(`UNCAUGHT_EXCEPTION: ${err}`)
+  console.error(`Origine: ${origin}`)
 });
+
 process.on('unhandledRejection', (reason, promise) => {
-  console.log(`UNHANDLED_REJECTION : ${reason}\n-----\n`, promise)
+  Logger.warn(`UNHANDLED_REJECTION : ${reason}`)
+  console.log(promise)
 });
-process.on('warning', (...args) => console.log(...args));
+
+process.on('warning', (...args) => Logger.warn(...args));
 
 mongoose.connect(process.env.DATATABLE_URI, {
   autoIndex: false, // Don't build indexes
@@ -27,12 +31,8 @@ mongoose.connect(process.env.DATATABLE_URI, {
   serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
   socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
   family: 4 // Use IPv4, skip trying IPv6
-}).then(() => {
-  console.log('Connecter')
-})
-  .catch(err => {
-    console.log(err)
-  })
+}).then(() => {Logger.client('- Connecter à la base de données'); })
+  .catch(err => {Logger.error(err); })
 
 
 client.login(process.env.DISCORD_TOKEN)

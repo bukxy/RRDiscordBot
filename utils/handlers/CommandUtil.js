@@ -2,23 +2,34 @@ const {promisify} = require('util');
 const {glob} = require('glob');
 const {permissions} = require("../../commands/utils/ping");
 const pGlob = promisify(glob);
+const Logger = require('../Logger');
 
 module.exports = async client => {
   (await pGlob(`${process.cwd()}/commands/*/*.js`)).map(async cmdFile => {
     const cmd = require(cmdFile);
 
-    if (!cmd.name || (!cmd.description && cmd.type != 'USER')) return console.log(`-----\nCommande non-chargé: pas de nom et/ou description\nFichier -> ${cmdFile}\n-----`);
+    if (!cmd.name) return Logger.warn(`Commande non-chargé: pas de nom ↓\nFichier -> ${cmdFile}`);
 
-    if (!cmd.permissions) return console.log(`-----\nCommande non-chargé: pas de permission\nFichier -> ${cmdFile}\n-----`);
+    if(!cmd.description && cmd.type != 'USER') return Logger.warn(`Commande non-chargé: pas de description à votre commande ↓\nFichier -> ${cmdFile}`);
+
+    if (!cmd.category) return Logger.warn(`Commande non-chargé: pas de catégorie à votre commande ↓\nFichier -> ${cmdFile}`);
+
+    if (!cmd.permissions) return Logger.warn(`Commande non-chargé: pas de permission à votre commande ↓\nFichier -> ${cmdFile}`);
+
+    if (cmd.ownerOnly == undefined) return Logger.warn(`Commande non-chargé: indiquer si la commande est ownerOnly à votre commande ↓\nFichier -> ${cmdFile}`);
+
+    if (!cmd.usage) return Logger.warn(`Commande non-chargé: ajouter une utilisation (usage) à votre commande ↓\nFichier -> ${cmdFile}`);
+
+    if (!cmd.examples) return Logger.warn(`Commande non-chargé: ajouter des exemples (examples) à votre commande ↓\nFichier -> ${cmdFile}`);
 
     cmd.permissions.forEach(permission => {
       if (!permissionsList.includes(permission)) {
-        return console.log(`-----\nCommande non-déclenché: erreur de typo sur la permission ${permission}\nFichier -> ${cmdFile}\n-----`);
+        return Logger.typo(`Commande non-chargé: erreur de typo sur la permission ${permission} ↓\nFichier -> ${cmdFile}`);
       }
     })
 
     client.commands.set(cmd.name, cmd);
-    console.log(`Commande chargé: ${cmd.name}`);
+    Logger.command(`- ${cmd.name}`);
   })
 }
 

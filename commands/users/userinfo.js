@@ -2,7 +2,12 @@ const {MessageEmbed} = require("discord.js");
 
 module.exports = {
   name: 'userinfo',
-  permissions: ['ADMINISTRATOR'],
+  category: 'users',
+  permissions: ['SEND_MESSAGES'],
+  ownerOnly: false,
+  usage: 'Utiliser le menu contextuel de Discord',
+  examples: ['Utiliser le menu contextuel de Discord'],
+  description: 'Afficher les infos d\'un utilisateur',
   type: 'USER',
   async runInteraction(client, interaction) {
     const member = await interaction.guild.members.fetch(interaction.targetId);
